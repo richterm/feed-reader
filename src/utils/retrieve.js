@@ -40,7 +40,7 @@ export default async (url, options = {}, fetchFn = fetch) => {
     signal = null,
   } = options
 
-  const res = proxy ? await profetch(url, { proxy, signal }, fetchFn) : await fetch(url, { headers, agent, signal })
+  const res = proxy ? await profetch(url, { proxy, signal }, fetchFn) : await fetchFn(url, { headers, agent, signal })
 
   const status = res.status
   if (status >= 400) {
