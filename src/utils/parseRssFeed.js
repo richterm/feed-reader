@@ -9,45 +9,50 @@ import {
   toISODateString,
   buildDescription,
   getPureUrl,
-  getOptionalTags
+  getOptionalTags,
+  getEntryId
 } from './normalizer.js'
 
 const transform = (item, options) => {
   const {
     useISODateFormat,
     descriptionMaxLen,
-    getExtraEntryFields
+    baseUrl,
+    getExtraEntryFields,
   } = options
 
   const {
+    guid = '',
     title = '',
     link = '',
     pubDate = '',
-    description = ''
+    description = '',
+    'content:encoded': content = '',
   } = item
 
   const published = useISODateFormat ? toISODateString(pubDate) : pubDate
-
+  const htmlContent = getText(description || content)
   const entry = {
+    id: getEntryId(guid, link, pubDate),
     title: getText(title),
-    link: getPureUrl(link),
+    link: getPureUrl(link, guid, baseUrl),
     published,
-    description: buildDescription(description, descriptionMaxLen)
+    description: buildDescription(htmlContent, descriptionMaxLen),
   }
 
   const extraFields = getExtraEntryFields(item)
 
   return {
     ...entry,
-    ...extraFields
+    ...extraFields,
   }
 }
 
-const flatten = (feed) => {
+const flatten = (feed, baseUrl) => {
   const {
     title = '',
     link = '',
-    item
+    item,
   } = feed
 
   const items = isArray(item) ? item : [item]
@@ -55,13 +60,13 @@ const flatten = (feed) => {
     const {
       id,
       title = '',
-      link = ''
+      link = '',
     } = entry
 
     const item = {
       ...entry,
       title: getText(title),
-      link: getPureUrl(link, id)
+      link: getPureUrl(link, id, baseUrl),
     }
 
     const txtTags = 'guid description source'.split(' ')
@@ -85,8 +90,8 @@ const flatten = (feed) => {
   const output = {
     ...feed,
     title: getText(title),
-    link: getPureUrl(link),
-    item: isArray(item) ? entries : entries[0]
+    link: getPureUrl(link, baseUrl),
+    item: isArray(item) ? entries : entries[0],
   }
   return output
 }
@@ -94,11 +99,14 @@ const flatten = (feed) => {
 const parseRss = (data, options = {}) => {
   const {
     normalization,
-    getExtraFeedFields
+    baseUrl,
+    getExtraFeedFields,
   } = options
 
+  const feedData = data.rss.channel
+
   if (!normalization) {
-    return flatten(data.rss.channel)
+    return flatten(feedData, baseUrl)
   }
 
   const {
@@ -108,10 +116,10 @@ const parseRss = (data, options = {}) => {
     generator = '',
     language = '',
     lastBuildDate = '',
-    item = []
-  } = data.rss.channel
+    item = [],
+  } = feedData
 
-  const extraFields = getExtraFeedFields(data.rss.channel)
+  const extraFields = getExtraFeedFields(feedData)
 
   const items = isArray(item) ? item : [item]
 
@@ -119,7 +127,7 @@ const parseRss = (data, options = {}) => {
 
   return {
     title: getText(title),
-    link: getPureUrl(link),
+    link: getPureUrl(link, '', baseUrl),
     description,
     language,
     generator,
@@ -127,7 +135,7 @@ const parseRss = (data, options = {}) => {
     ...extraFields,
     entries: items.map((item) => {
       return transform(item, options)
-    })
+    }),
   }
 }
 

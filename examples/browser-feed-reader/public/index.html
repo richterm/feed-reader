@@ -21,13 +21,13 @@
     <div class="row">
       <div class="col-12">
         <header>
-          <h1>feed-reader on browser</h1>
+          <h1>feed-extractor on browser</h1>
         </header>
         <form id="form_parser">
           <fieldset>
             <legend>enter feed url</legend>
             <p>
-              <input id="input_url" type="url" value="https://feeds.washingtonpost.com/rss/business/technology">
+              <input id="input_url" type="url" value="https://feeds.feedblitz.com/baeldung/cs&x=1">
             </p>
             <p>
               <label><input type="checkbox" id="ckb_proxy"> Use proxy</label>
@@ -45,10 +45,10 @@
     </div>
   </body>
   <script type="module">
-    import { read } from 'https://unpkg.com/feed-reader@latest/dist/feed-reader.esm.js'
+    import { extract } from "https://esm.sh/@extractus/feed-extractor@latest"
 
     const loadFeed = async (url, useProxy = false) => {
-      const data = await read(url, {
+      const data = await extract(url, {
         useISODateFormat: true,
         includeEntryContent: false
       }, {

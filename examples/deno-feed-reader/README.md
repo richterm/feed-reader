@@ -3,7 +3,11 @@
 With `deno`, we have not much thing to do. Just start the server:
 
 ```bash
-deno run --allow-net --allow-env --allow-read index.ts
+# reload if needed
+deno cache --reload index.ts
+
+# start server
+deno task dev
 ```
 
 Open `http://localhost:3103/?url=https://news.google.com/rss` to see the result.
@@ -11,17 +15,15 @@ Open `http://localhost:3103/?url=https://news.google.com/rss` to see the result.
 
 You can specify the following options via query string parameters:
 
-- `includeEntryContent`
-- `includeOptionalElements`
-- `useISODateFormat`
 - `normalization`
+- `useISODateFormat`
 
 These params can be set to  `y` or `n`, with `y` is truthy, `n` is falsy.
 
 For examples:
 
 ```
-http://localhost:3103/?url=https://news.google.com/rss&includeEntryContent=y&useISODateFormat=n&includeOptionalElements=y
+http://localhost:3103/?normalization=y&useISODateFormat=y&url=https://news.google.com/rss
 ```
 
 ---

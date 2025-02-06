@@ -1,7 +1,8 @@
 import { serve } from 'https://deno.land/std/http/server.ts'
 
-import { Hono } from 'https://deno.land/x/hono@v2.1.4/mod.ts'
-import { read } from 'https://esm.sh/feed-reader@latest'
+import { Hono } from 'https://deno.land/x/hono@v3.10.2/mod.ts'
+
+import { extract } from 'npm:@extractus/feed-extractor'
 
 const app = new Hono()
 
@@ -17,20 +18,16 @@ app.get('/', async (c) => {
   if (!url) {
     return c.json(meta)
   }
-  const includeEntryContent = c.req.query('includeEntryContent') || 'n'
-  const includeOptionalElements = c.req.query('includeOptionalElements') || 'n'
   const useISODateFormat = c.req.query('useISODateFormat') || 'y'
   const normalization = c.req.query('normalization') || 'y'
 
   const opts = {
-    includeEntryContent: includeEntryContent === 'y',
-    includeOptionalElements: includeOptionalElements === 'y',
     useISODateFormat: useISODateFormat !== 'n',
     normalization: normalization !== 'n'
   }
 
   try {
-    const data = await read(url, opts)
+    const data = await extract(url, opts)
     return c.json({
       error: 0,
       message: 'feed data has been extracted successfully',

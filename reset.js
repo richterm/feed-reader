@@ -1,7 +1,4 @@
-/**
- * reset.js
- * @ndaidong
-**/
+// reset.js
 
 import {
   existsSync,
@@ -16,14 +13,14 @@ const dirs = [
   '.nyc_output',
   'coverage',
   'node_modules',
-  '.nuxt'
+  '.nuxt',
 ]
 
 const files = [
   'yarn.lock',
   'pnpm-lock.yaml',
   'package-lock.json',
-  'coverage.lcov'
+  'coverage.lcov',
 ]
 
 dirs.forEach((d) => {

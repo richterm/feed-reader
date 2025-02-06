@@ -1,10 +1,14 @@
 // Type definitions
 
 export interface FeedEntry {
+  /**
+   * id, guid, or generated identifier for the entry
+   */
+  id: string;
   link?: string;
   title?: string;
   description?: string;
-  published?: Date;
+  published?: string;
 }
 
 export interface FeedData {
@@ -13,13 +17,13 @@ export interface FeedData {
   description?: string;
   generator?: string;
   language?: string;
-  published?: Date;
+  published?: string;
   entries?: Array<FeedEntry>;
 }
 
 export interface ProxyConfig {
   target?: string;
-  headers?: string[];
+  headers?: any;
 }
 
 export interface ReaderOptions {
@@ -28,16 +32,6 @@ export interface ReaderOptions {
    * default: true
    */
   normalization?: boolean;
-  /**
-   * include full content of feed entry if present
-   * default: false
-   */
-  includeEntryContent?: boolean;
-  /**
-   * include optional elements if any
-   * default: false
-   */
-  includeOptionalElements?: boolean;
   /**
    * convert datetime to ISO format
    * default: true
@@ -54,38 +48,51 @@ export interface ReaderOptions {
    */
   xmlParserOptions?: any;
   /**
+   * fill in the baseurl when it does not exist in the link
+   * default: ''
+   */
+  baseUrl?: string;
+  /**
    * merge extra feed fields in result
    */
-  extraFeedFields?: (feedData: object) => object;
+  getExtraFeedFields?: (feedData: object) => object;
   /**
    * merge extra entry fields in result
    */
-  extraEntryFields?: (entryData: object) => object;
+  getExtraEntryFields?: (entryData: object) => object;
 }
 
 type FetchFnReturnType = Partial<Response> &
   Pick<Response, "headers" | "text" | "status">;
 
 export interface FetchOptions {
-  /**
-   * list of request headers
-   * default: null
-   */
-  headers?: string[];
-  /**
-   * the values to configure proxy
-   * default: null
-   */
+  //  Definitions by: Ryan Graham <https://github.com/ryan-codingintrigue>
+  method?: "GET" | "POST" | "DELETE" | "PATCH" | "PUT" | "HEAD" | "OPTIONS" | "CONNECT";
+  headers?: any;
+  body?: any;
+  mode?: "cors" | "no-cors" | "same-origin";
+  credentials?: "omit" | "same-origin" | "include";
+  cache?: "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached";
+  redirect?: "follow" | "error" | "manual";
+  referrer?: string;
+  referrerPolicy?: "referrer" | "no-referrer-when-downgrade" | "origin" | "origin-when-cross-origin" | "unsafe-url";
+  integrity?: any;
   proxy?: ProxyConfig;
   /**
-   * an optional fetch function override
-   * default: fetch from cross-fetch
+   * http proxy agent
+   * default: null
    */
-  fetchFn?: (...args: Parameters<typeof fetch>) => Promise<FetchFnReturnType>;
+  agent?: object;
+  /**
+   * signal to terminate request
+   * default: null
+   */
+  signal?: object;
 }
 
-export function read(
-  url: string,
-  options?: ReaderOptions,
-  fetchOptions?: FetchOptions
-): Promise<FeedData>;
+export function extractFromXml(xml: string, options?: ReaderOptions): FeedData;
+export function extractFromJson(json: string, options?: ReaderOptions): FeedData;
+
+export function extract(url: string, options?: ReaderOptions, fetchOptions?: FetchOptions): Promise<FeedData>;
+
+export function read(url: string, options?: ReaderOptions, fetchOptions?: FetchOptions): Promise<FeedData>;

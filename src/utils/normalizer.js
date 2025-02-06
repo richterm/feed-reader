@@ -11,19 +11,20 @@ import {
 
 import { decode } from 'html-entities'
 
-import { isValid as isValidUrl, purify as purifyUrl } from './linker.js'
+import { absolutify, isValid as isValidUrl, purify as purifyUrl } from './linker.js'
 
 export const toISODateString = (dstr) => {
   try {
     return dstr ? (new Date(dstr)).toISOString() : ''
-  } catch (err) {
+  } catch {
     return ''
   }
 }
 
-export const buildDescription = (val, maxlen) => {
-  const stripped = stripTags(String(val))
-  return truncate(stripped, maxlen).replace(/\n+/g, ' ')
+export const buildDescription = (val, maxlen = 0) => {
+  const stripped = stripTags(String(val).trim().replace(/^<!\[CDATA\[|\]\]>$/g, ''))
+  const text = maxlen > 0 ? truncate(stripped, maxlen) : stripped
+  return text.replace(/\n+/g, ' ')
 }
 
 export const getText = (val) => {
@@ -32,8 +33,8 @@ export const getText = (val) => {
 }
 
 export const getLink = (val = [], id = '') => {
-  if (id && isValidUrl(id)) {
-    return id
+  if (isObject(id) && hasProperty(id, '@_isPermaLink') && id['@_isPermaLink'] === 'true') {
+    return getText(id)
   }
   const getEntryLink = (links) => {
     const items = links.map((item) => {
@@ -41,7 +42,7 @@ export const getLink = (val = [], id = '') => {
     })
     return items.length > 0 ? items[0] : ''
   }
-  return isString(val)
+  const url = isString(val)
     ? getText(val)
     : isObject(val) && hasProperty(val, 'href')
       ? getText(val.href)
@@ -52,11 +53,25 @@ export const getLink = (val = [], id = '') => {
           : isObject(val) && hasProperty(val, '_attributes')
             ? getText(val._attributes.href)
             : isArray(val) ? getEntryLink(val) : ''
+
+  return url ? url : isValidUrl(id) ? id : ''
 }
 
-export const getPureUrl = (url, id = '') => {
+export const getPureUrl = (url, id = '', baseUrl) => {
   const link = getLink(url, id)
-  return link ? purifyUrl(link) : ''
+  const pu = purifyUrl(link)
+
+  return link
+    ? pu
+      ? pu
+      : absolutify(baseUrl, link)
+    : ''
+}
+
+const hash = (str) => Math.abs(str.split('').reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0)).toString(36)
+
+export const getEntryId = (id, url, pubDate) => {
+  return id ? getText(id) : hash(getPureUrl(url)) + '-' + (new Date(pubDate)).getTime()
 }
 
 export const getEnclosure = (val) => {
@@ -66,18 +81,18 @@ export const getEnclosure = (val) => {
   return !url || !type
     ? null
     : {
-        url,
-        type,
-        length
-      }
+      url,
+      type,
+      length,
+    }
 }
 
 const getCategory = (v) => {
   return isObject(v)
     ? {
-        text: getText(v),
-        domain: v['@_domain']
-      }
+      text: getText(v),
+      domain: v['@_domain'],
+    }
     : v
 }
 
@@ -85,7 +100,7 @@ export const getOptionalTags = (val, key) => {
   if (key === 'source') {
     return {
       text: getText(val),
-      url: getLink(val)
+      url: getLink(val),
     }
   }
   if (key === 'category') {

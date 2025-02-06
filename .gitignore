@@ -17,3 +17,7 @@ package-lock.json
 pnpm-lock.yaml
 
 output.json
+deno.lock
+
+bundle.cjs
+bundle.cjs.map

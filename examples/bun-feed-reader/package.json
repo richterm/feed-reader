@@ -1,11 +1,14 @@
 {
   "name": "bun-feed-reader",
   "module": "index.ts",
+  "scripts": {
+    "start": "bun run index.ts"
+  },
   "devDependencies": {
-    "bun-types": "^0.1.0"
+    "bun-types": "^1.0.14"
   },
   "dependencies": {
-    "feed-reader": "latest",
-    "hono": "^2.1.4"
+    "@extractus/feed-extractor": "latest",
+    "hono": "^3.10.2"
   }
 }
