@@ -30,7 +30,7 @@ const getCharsetFromText = (text) => {
   }
 }
 
-export default async (url, options = {}) => {
+export default async (url, options = {}, fetchFn = fetch) => {
   const {
     headers = {
       'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0',
